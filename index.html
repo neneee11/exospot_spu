@@ -62,6 +62,7 @@ button,input{font:inherit;color:inherit}
 .cap{position:absolute;left:16px;top:14px;pointer-events:none;display:flex;flex-direction:column;gap:2px}
 .cap .mode{font-family:var(--f-display);font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
 .cap .hint{font-size:12.5px;color:var(--ink-2)}
+.hint-m{display:none}
 .tools{position:absolute;right:12px;top:12px;display:flex;gap:6px}
 .tbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(6px);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--ink)}
 .tbtn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
@@ -211,6 +212,39 @@ td.d{color:var(--ink-2)}
   .rules div{grid-template-columns:84px 92px minmax(0,1fr)}
   .pin span{display:none}
 }
+@media (max-width:560px){
+  .top{gap:10px 12px;padding-block:12px 12px}
+  .tag{font-size:10.5px;padding:3px 6px}
+  .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}
+  .tabs button{padding:8px 2px;font-size:13px;text-align:center}
+  .tabs .n{display:none}
+  .grid{margin-top:14px;gap:18px}
+  .stage{height:clamp(330px,54vh,470px)}
+  .cap{left:12px;top:10px}
+  .hint-d{display:none} .hint-m{display:inline}
+  .tools{top:auto;bottom:10px;right:10px}
+  .tbtn{width:40px;height:40px;justify-content:center;padding:0;border-radius:8px}
+  .tbtn svg{width:18px;height:18px}
+  .tbtn .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .lowb{left:10px;bottom:10px}
+  .dock{padding:12px;gap:12px}
+  .flexrow label{font-size:12.5px}
+  .status{gap:8px}
+  .play{flex:1 1 100%;padding:10px 12px}
+  .led{font-size:12.5px}
+  input[type=range]{height:28px}
+  .panel{gap:18px}
+  .lead{font-size:15.5px}
+  .rules div{grid-template-columns:76px 86px minmax(0,1fr);padding:10px 12px;font-size:13.5px}
+  dl.spec{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr)}
+  dl.spec dd{font-size:12px}
+  .mats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rate div{grid-template-columns:104px minmax(0,1fr)}
+  .big b{font-size:34px}
+  .copy button{flex:1 1 100%;padding:10px 12px}
+  th,td{padding:8px 10px}
+}
+@media (max-width:360px){ .tag{display:none} .tabs button{font-size:12px} }
 @media (prefers-reduced-motion:reduce){ .bar .t b{transition:none} }
 </style>
 <style>body{margin:0}</style>
@@ -235,10 +269,10 @@ td.d{color:var(--ink-2)}
   <main class="grid">
     <div class="left">
       <div class="stage" id="stage">
-        <div class="cap"><span class="mode" id="modeName">Overview</span><span class="hint">Drag to rotate · scroll or pinch to zoom</span></div>
+        <div class="cap"><span class="mode" id="modeName">Overview</span><span class="hint"><span class="hint-d">Drag to rotate · scroll or pinch to zoom</span><span class="hint-m">One finger rotates · pinch to zoom</span></span></div>
         <div class="tools">
-          <button class="tbtn" id="spin" aria-pressed="true" title="Turn auto-rotate on or off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M12.6 1.8v2.6H10"/></svg>Auto-rotate</button>
-          <button class="tbtn" id="reset" title="Return the camera to this view"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/></svg>Reset view</button>
+          <button class="tbtn" id="spin" aria-label="Auto-rotate" aria-pressed="true" title="Turn auto-rotate on or off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M12.6 1.8v2.6H10"/></svg><span class="lbl">Auto-rotate</span></button>
+          <button class="tbtn" id="reset" aria-label="Reset view" title="Return the camera to this view"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/></svg><span class="lbl">Reset view</span></button>
         </div>
         <div class="hs" id="hs" aria-hidden="true"></div>
         <span class="lowb" id="lowBadge" hidden title="WebGL is off in this browser, so the model is drawn with the 2D canvas instead">Compatibility view</span>
@@ -628,11 +662,16 @@ const VIEWS={
   enclosure:()=>{const c=wp(pod); return {p:c.clone().add(V(-1.9,.75,-3.1)),t:c};}
 };
 let tween=null;
+function fit(v){
+  const k=Math.min(1.9,Math.max(1,1.05/camera.aspect));
+  return {p:v.t.clone().add(v.p.clone().sub(v.t).multiplyScalar(k)),t:v.t};
+}
 function flyTo(v,dur=1000){
+  v=fit(v);
   if(reduce){camera.position.copy(v.p);controls.target.copy(v.t);controls.update();return;}
   tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:v.p,t1:v.t,s:performance.now(),d:dur};
 }
-camera.position.copy(VIEWS.overview().p); controls.target.copy(VIEWS.overview().t); controls.update();
+
 
 /* hotspots */
 const HS={
@@ -689,7 +728,12 @@ document.querySelectorAll('.part').forEach(b=>{
 });
 
 /* resize */
-function size(){ const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+let lastAspect=0;
+function size(){
+  const w=stage.clientWidth,h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+  if(lastAspect&&Math.abs(Math.log(camera.aspect/lastAspect))>.25&&typeof state!=='undefined') flyTo(VIEWS[state.mode](),400);
+  lastAspect=camera.aspect;
+}
 new ResizeObserver(size).observe(stage); size();
 
 /* status */
@@ -749,7 +793,7 @@ function setMode(m,first){
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===m)));
   document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==m);
   setFade(m==='circuit'); applyPod(); dirty=true; pose(); buildPins();
-  if(!first) flyTo(VIEWS[m]()); else { const v=VIEWS[m](); camera.position.copy(v.p); controls.target.copy(v.t); controls.update(); }
+  if(!first) flyTo(VIEWS[m]()); else { const v=fit(VIEWS[m]()); camera.position.copy(v.p); controls.target.copy(v.t); controls.update(); }
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ if(location.hash!=='#'+b.dataset.tab) location.hash=b.dataset.tab; else setMode(b.dataset.tab); }));
 window.addEventListener('hashchange',()=>setMode(location.hash.slice(1)));
