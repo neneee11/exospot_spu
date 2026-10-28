@@ -60,10 +60,11 @@ No login? Create a token at vercel.com › Account Settings › Tokens and run `
 3. Framework preset **Other**, build command empty, output directory `.`.
 4. **Deploy**.
 
-## If the 3D view shows a message instead of the model
+## Browser support
 
-- *"The 3D library did not load"*: a blocker stopped `vendor/three.min.js`, or the `vendor/` folder was not uploaded. Check that it exists in the deployment.
-- *"3D graphics (WebGL) are turned off"*: in Chrome or Edge go to Settings › System and turn on **Use graphics acceleration when available**, then relaunch. Check the browser at https://get.webgl.org.
+Works in Chrome, Edge, Safari and Firefox. When WebGL is available the model renders with lighting and shadows. When a browser has WebGL turned off (for example Chrome with graphics acceleration disabled), the page switches to a **Compatibility view** that draws the same model with the 2D canvas, so every tab and control still works. A small "Compatibility view" tag shows in the corner when this happens.
+
+If the 3D area says *"The 3D library did not load"*, the `vendor/` folder is missing from the deployment or a blocker stopped it.
 
 ## Editing
 
