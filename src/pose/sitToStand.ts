@@ -115,7 +115,13 @@ export class SitToStandAnalyzer {
     // ---------- 3) Risk rules ----------
     const issues = this.evaluate(avg, valgus, velocity, asymmetry, tMs);
     const rawState = issues.reduce<SafetyState>((s, i) => worse(s, i.level), "G");
-    const state = this.debouncer.push(rawState);
+    const confirmFrames =
+      rawState === "R"
+        ? this.th.redConfirmFrames
+        : rawState === "Y"
+          ? this.th.yellowConfirmFrames
+          : this.th.debounceFrames;
+    const state = this.debouncer.push(rawState, confirmFrames);
 
     // ---------- 4) Rep state machine ----------
     let completedRep: RepEvent | null = null;

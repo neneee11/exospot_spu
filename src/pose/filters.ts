@@ -57,13 +57,13 @@ export class Debouncer<T> {
     this.candidate = initial;
   }
 
-  push(value: T): T {
+  push(value: T, frames = this.frames): T {
     if (value === this.candidate) this.count++;
     else {
       this.candidate = value;
       this.count = 1;
     }
-    if (this.candidate !== this.committed && this.count >= this.frames) {
+    if (this.candidate !== this.committed && this.count >= frames) {
       this.committed = this.candidate;
     }
     return this.committed;

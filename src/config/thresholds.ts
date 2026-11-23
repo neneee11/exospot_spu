@@ -27,6 +27,10 @@ export interface Thresholds {
   minKneeAngle: number | null;
   /** จำนวนเฟรมที่ต้องค้างก่อนเปลี่ยนสถานะ (กันเตือนมั่ว) */
   debounceFrames: number;
+  /** จำนวนเฟรมที่เสถียรสำหรับยืนยันสถานะเหลือง */
+  yellowConfirmFrames: number;
+  /** จำนวนเฟรมที่เสถียรสำหรับยืนยันสถานะแดง กะพริบไฟแดง */
+  redConfirmFrames: number;
   /** ค่าความมั่นใจขั้นต่ำว่ามองเห็นจุดข้อต่อ */
   minVisibility: number;
 }
@@ -42,6 +46,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   asymmetryDanger: 35,
   minKneeAngle: null,
   debounceFrames: 6,
+  yellowConfirmFrames: 3,
+  redConfirmFrames: 6,
   minVisibility: 0.5,
 };
 

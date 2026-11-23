@@ -51,6 +51,19 @@ function* slowReps(count: number, width?: number) {
 }
 
 describe("SitToStandAnalyzer", () => {
+  it("แยกสีเขียว เหลือง และแดงตามเกณฑ์ที่กำหนด", () => {
+    const th = { ...DEFAULT_THRESHOLDS, debounceFrames: 1, yellowConfirmFrames: 1, redConfirmFrames: 1 };
+    const an = new SitToStandAnalyzer({ thresholds: th, postOp: false });
+
+    const safe = an.update(pose(130), 100);
+    expect(safe.state).toBe("G");
+
+    const warning = an.update(pose(130, 0.075), 133);
+    expect(warning.rawState).toBe("Y");
+
+    const danger = an.update(pose(130, 0.05), 166);
+    expect(danger.rawState).toBe("R");
+  });
   it("นับครั้งได้ถูกต้องเมื่อทำท่าช้าๆ", () => {
     const { summary } = run(slowReps(5));
     expect(summary.completedReps).toBe(5);
