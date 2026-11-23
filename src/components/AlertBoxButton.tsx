@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Lightbulb } from "lucide-react";
 import { STATE_COLOR } from "../config/messages";
-import { ledBox, type BoxSnapshot, type BoxStatus } from "../io/serial";
+import { ledBox, type BoxSnapshot, type BoxStatus, type LedState } from "../io/serial";
 
 const LABEL: Record<BoxStatus, string> = {
   unsupported: "เบราว์เซอร์นี้เชื่อมกล่องไม่ได้ (ใช้ Chrome/Edge บนคอม)",
@@ -75,24 +75,39 @@ export function AlertBoxButton({ compact = false }: { compact?: boolean }) {
 export function LedMirror() {
   const { status, led } = useLedBox();
   if (status !== "connected" && status !== "unresponsive") return null;
+  const test = (state: LedState) => ledBox.testLed(state);
   return (
-    <div className="flex items-center gap-3 rounded-full bg-white/45 px-4 py-2">
-      <span className="text-ink-soft">ไฟบนกล่อง</span>
-      <div className="flex gap-2">
-        {(["G", "Y", "R"] as const).map((c) => (
-          <span
-            key={c}
-            className="h-6 w-6 rounded-full border border-white/70 transition"
-            style={{
-              background: led === c ? STATE_COLOR[c] : "rgb(255 255 255 / .35)",
-              boxShadow: led === c ? `0 0 12px ${STATE_COLOR[c]}` : undefined,
-            }}
-          />
+    <div className="space-y-2 rounded-3xl bg-white/45 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <span className="text-ink-soft">ไฟบนกล่อง</span>
+        <div className="flex gap-2">
+          {(["G", "Y", "R"] as const).map((c) => (
+            <span
+              key={c}
+              className="h-6 w-6 rounded-full border border-white/70 transition"
+              style={{
+                background: led === c ? STATE_COLOR[c] : "rgb(255 255 255 / .35)",
+                boxShadow: led === c ? `0 0 12px ${STATE_COLOR[c]}` : undefined,
+              }}
+            />
+          ))}
+        </div>
+        <span className="ml-auto font-semibold text-ink">
+          {status === "unresponsive" ? "ไม่ตอบสนอง" : led ? LED_NAME[led] : "รอสัญญาณ…"}
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {(["G", "Y", "R", "O"] as const).map((state) => (
+          <button
+            key={state}
+            type="button"
+            onClick={() => test(state)}
+            className="rounded-full border border-white/70 px-2 py-2 text-sm font-semibold text-ink"
+          >
+            {LED_NAME[state]}
+          </button>
         ))}
       </div>
-      <span className="ml-auto font-semibold text-ink">
-        {status === "unresponsive" ? "ไม่ตอบสนอง" : led ? LED_NAME[led] : "รอสัญญาณ…"}
-      </span>
     </div>
   );
 }

@@ -90,6 +90,7 @@ void loop() {
       lastCmd = now;
       setLeds(true, true, true);
       celebrateUntil = now + CELEBRATE_MS;
+      report();
     } else if (c == 'P') {
       report();
     }

@@ -102,6 +102,12 @@ class LedBox {
     void this.write("C");
   }
 
+  /** ทดสอบไฟกล่องจากหน้าจอเพื่อแยกปัญหา serial/firmware/pose */
+  testLed(led: LedState) {
+    this.wanted = led;
+    void this.write(led);
+  }
+
   /** ส่ง heartbeat และตรวจว่ากล่องยังตอบอยู่ไหม */
   private tick = () => {
     void this.write(this.wanted);
