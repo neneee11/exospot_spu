@@ -88,7 +88,8 @@ export class SupabaseRepository implements Repository {
       return;
     }
     const { data: signIn, error } = await this.db.auth.signInAnonymously();
-    if (error || !signIn.user) throw new Error(`เข้าสู่ระบบไม่สำเร็จ: ${error?.message}`);
+    if (error) throw supabaseError(error, "เข้าสู่ระบบแบบไม่ระบุตัวตนไม่สำเร็จ");
+    if (!signIn.user) throw new Error("เข้าสู่ระบบไม่สำเร็จ: Supabase ไม่ส่งข้อมูลผู้ใช้กลับมา");
     this.userId = signIn.user.id;
   }
 
