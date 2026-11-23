@@ -18,6 +18,18 @@ import type {
 
 type Row = Record<string, unknown>;
 
+function supabaseError(error: unknown, fallback: string): Error {
+  if (error instanceof Error) return error;
+  if (error && typeof error === "object") {
+    const value = error as { message?: unknown; code?: unknown; details?: unknown };
+    const parts = [value.message, value.details, value.code].filter(
+      (part): part is string => typeof part === "string" && part.length > 0,
+    );
+    if (parts.length) return new Error([...new Set(parts)].join(": "));
+  }
+  return new Error(fallback);
+}
+
 const profileFromRow = (r: Row): Profile => ({
   id: r.id as string,
   nickname: r.nickname as string,
@@ -82,7 +94,7 @@ export class SupabaseRepository implements Repository {
 
   async getProfile() {
     const { data, error } = await this.db.from("profiles").select("*").eq("id", this.userId).maybeSingle();
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถอ่านข้อมูลโปรไฟล์");
     return data ? profileFromRow(data) : null;
   }
 
@@ -110,7 +122,7 @@ export class SupabaseRepository implements Repository {
       })
       .select()
       .single();
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถบันทึกข้อมูลโปรไฟล์");
     return profileFromRow(data);
   }
 
@@ -121,7 +133,7 @@ export class SupabaseRepository implements Repository {
       .eq("user_id", this.userId)
       .eq("exercise", DEFAULT_PLAN.exercise)
       .maybeSingle();
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถอ่านโปรแกรมฝึก");
     if (!data) return DEFAULT_PLAN;
     return {
       exercise: data.exercise,
@@ -147,7 +159,7 @@ export class SupabaseRepository implements Repository {
       },
       { onConflict: "user_id,exercise" },
     );
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถบันทึกโปรแกรมฝึก");
     return plan;
   }
 
@@ -158,7 +170,7 @@ export class SupabaseRepository implements Repository {
       .eq("user_id", this.userId)
       .gte("started_at", sinceIso)
       .order("started_at", { ascending: false });
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถอ่านประวัติการฝึก");
     return (data ?? []).map(sessionFromRow);
   }
 
@@ -168,7 +180,7 @@ export class SupabaseRepository implements Repository {
       .select("*")
       .eq("session_id", sessionId)
       .order("rep");
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถอ่านข้อมูลรายครั้ง");
     return (data ?? []).map((r) => ({
       rep: r.rep,
       durationSec: Number(r.duration_sec),
@@ -201,7 +213,7 @@ export class SupabaseRepository implements Repository {
       })
       .select()
       .single();
-    if (error) throw error;
+    if (error) throw supabaseError(error, "ไม่สามารถบันทึกผลการฝึก");
 
     if (reps.length) {
       const { error: repErr } = await this.db.from("rep_events").insert(
@@ -216,7 +228,7 @@ export class SupabaseRepository implements Repository {
           issues: r.issues,
         })),
       );
-      if (repErr) throw repErr;
+      if (repErr) throw supabaseError(repErr, "ไม่สามารถบันทึกข้อมูลรายครั้ง");
     }
     return sessionFromRow(data);
   }

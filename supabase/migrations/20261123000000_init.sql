@@ -79,6 +79,11 @@ alter table public.exercise_plans enable row level security;
 alter table public.sessions       enable row level security;
 alter table public.rep_events     enable row level security;
 
+drop policy if exists "own profile" on public.profiles;
+drop policy if exists "own plans" on public.exercise_plans;
+drop policy if exists "own sessions" on public.sessions;
+drop policy if exists "own reps" on public.rep_events;
+
 create policy "own profile"  on public.profiles       for all using (id = auth.uid())      with check (id = auth.uid());
 create policy "own plans"    on public.exercise_plans for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "own sessions" on public.sessions       for all using (user_id = auth.uid()) with check (user_id = auth.uid());

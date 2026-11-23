@@ -29,9 +29,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setProfile(p);
         setPlan(pl);
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(formatError(e));
       } finally {
         setLoading(false);
+      }
+
+      function formatError(error: unknown): string {
+        if (error instanceof Error) return error.message;
+        if (typeof error === "string") return error;
+        if (error && typeof error === "object") {
+          const value = error as { message?: unknown; code?: unknown; details?: unknown };
+          const parts = [value.message, value.details, value.code].filter(
+            (part): part is string => typeof part === "string" && part.length > 0,
+          );
+          if (parts.length) return [...new Set(parts)].join(": ");
+        }
+        return "ไม่ทราบข้อผิดพลาดของฐานข้อมูล";
       }
     })();
   }, [repo]);
