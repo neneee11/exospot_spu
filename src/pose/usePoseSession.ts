@@ -206,6 +206,9 @@ export function usePoseSession(params: {
           const out = analyzer.update(pose, now, live);
           frameRef.current = out;
 
+          // แสดงสถานะไฟจาก AI อัตโนมัติ ไม่ต้องกดเลือก G/Y/R/O
+          ledBox.setState(out.visible ? out.state : "O");
+
           const color = live ? STATE_COLOR[out.state] : STATE_COLOR[out.visible ? "G" : "O"];
           drawFrame(ctx, video, pose.image, color, out.kneeAngle);
           if (live) handleLiveRef.current(out);
